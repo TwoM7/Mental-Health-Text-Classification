@@ -18,10 +18,10 @@ NLP, Mental Health, Machine Learning, Text Data, Word Embeddings, Deep Learning,
 
 ### 1. Environment
 It is recommended to use a virtual environment.
-bash
+'''bash
 python -m venv venv
 source venv/bin/activate
-On Windows, use `venv\Scripts\activate
+#On Windows, use `venv\Scripts\activate
 
 ### 2. Install Dependencies
 pip install -r requirements.txt
