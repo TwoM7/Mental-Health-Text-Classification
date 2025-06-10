@@ -1,1 +1,1 @@
-# ental-Health-Text-Classification
+# Mental-Health-Text-Classification
