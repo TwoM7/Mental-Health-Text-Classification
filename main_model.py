@@ -227,7 +227,7 @@ def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, c
             y_true.extend(labels.cpu().numpy())
 
     final_accuracy = accuracy_score(y_true, y_pred)
-    print(f"\nFINAL TEST ACCURACY: {final_accuracy:.4f}  <-- This should be much closer to your original score.")
+    print(f"\nFINAL TEST ACCURACY: {final_accuracy:.4f}")
     
     print("\n--- Final Per-Class Classification Report ---")
     print(classification_report(y_true, y_pred, target_names=class_names, digits=4))
