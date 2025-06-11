@@ -17,7 +17,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# --- 1. DATA LOADING AND PREPROCESSING (CORRECTED) ---
+#  Data loading and preprocessing
 
 def load_and_preprocess_data(filepath="Combined Data.csv"):
 
@@ -42,7 +42,7 @@ def load_and_preprocess_data(filepath="Combined Data.csv"):
     df.dropna(subset=['cleaned_text', 'status'], inplace=True)
     df = df[df['cleaned_text'] != '']
 
-    print("Vectorizing text with TF-IDF...")
+    print("vectorizing now")
     vectorizer = TfidfVectorizer(max_features=5000)
     X_tfidf = vectorizer.fit_transform(df['cleaned_text'])
 
@@ -55,14 +55,14 @@ def load_and_preprocess_data(filepath="Combined Data.csv"):
         X_tfidf, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    print("Applying SMOTE to the training data...")
+    print("balancing data using SMOTE")
     smote = SMOTE(random_state=42)
     X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
     
     print("Preprocessing complete.")
     return X_train_resampled, X_test, y_train_resampled, y_test, class_names
 
-# ----- 2. MODEL TRAINING AND EVALUATION -----
+# Training and evaluation
 
 def run_models(X_train, X_test, y_train, y_test, class_names):
     models = {
@@ -99,5 +99,3 @@ if __name__ == '__main__':
     
     if X_train_res is not None:
         run_models(X_train_res, X_test_tfidf, y_train_res, y_test_labels, classes)
-        print("\nAll classical models have been evaluated.")
-
