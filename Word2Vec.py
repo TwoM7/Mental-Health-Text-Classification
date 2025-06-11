@@ -10,7 +10,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# --- 1. DATA LOADING AND PREPROCESSING ---
+# Data loading and preprocessing
 
 def load_and_preprocess_data(filepath="Combined Data.csv"):
     print(f"1. Loading data from '{filepath}'...")
@@ -36,10 +36,10 @@ def load_and_preprocess_data(filepath="Combined Data.csv"):
     X_train, X_test, y_train, y_test = train_test_split(
         df['cleaned_text'], labels, test_size=0.2, random_state=42, stratify=labels
     )
-    print("Data loading and preprocessing complete.")
+    print("loading and preprocessing are done")
     return X_train, X_test, y_train, y_test, class_names
 
-# --- 2. WORD2VEC EMBEDDING AND CLASSIFICATION ---
+# Embedding and classification
 
 def run_word2vec_model(X_train, X_test, y_train, y_test, class_names):
     """
@@ -57,15 +57,12 @@ def run_word2vec_model(X_train, X_test, y_train, y_test, class_names):
             return np.zeros(model.vector_size)
         return np.mean(doc_vec, axis=0)
 
-    print("Generating document vectors for training and testing data...")
     X_train_w2v = np.array([document_vector(doc, w2v_model) for doc in X_train])
     X_test_w2v = np.array([document_vector(doc, w2v_model) for doc in X_test])
 
-    print("\n--- Training Random Forest Classifier on Word2Vec Embeddings ---")
     rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf_clf.fit(X_train_w2v, y_train)
 
-    print("Evaluating model...")
     y_pred = rf_clf.predict(X_test_w2v)
     
     acc = accuracy_score(y_test, y_pred)
@@ -81,4 +78,3 @@ if __name__ == '__main__':
     
     if X_train is not None:
         run_word2vec_model(X_train, X_test, y_train, y_test, class_names)
-        print("\nScript finished successfully.")
