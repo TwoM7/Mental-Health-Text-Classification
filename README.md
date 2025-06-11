@@ -12,6 +12,8 @@ NLP, Mental Health, Machine Learning, Text Data, Word Embeddings, Deep Learning,
 ## Repository Structure
 - `main_model.py`: The main script to reproduce our best-performing model. It fine-tunes a Sentence-BERT model and then trains an LSTM classifier.
 - `classical_models.py`: A script to reproduce the results for the six classical machine learning baselines (Logistic Regression, Random Forest, etc.).
+- `Word2Vec.py`: A script to reproduce the results for the Word2Vec
+- `E5_XGB_T5_RF`: A script to reproduce the results of our both T5 + Radnom forest and E5 + XGBoost
 - `requirements.txt`: A list of all Python packages required to run the codes.
 
 ## Setup
