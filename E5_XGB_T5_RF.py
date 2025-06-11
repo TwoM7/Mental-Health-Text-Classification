@@ -11,7 +11,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# --- 1. DATA LOADING AND PREPROCESSING ---
+# Data loading and precprocessing
 
 def load_and_preprocess_data(filepath="Combined Data.csv"):
     print(f"1. Loading data from '{filepath}'...")
@@ -37,10 +37,9 @@ def load_and_preprocess_data(filepath="Combined Data.csv"):
     X_train, X_test, y_train, y_test = train_test_split(
         df['cleaned_text'], labels, test_size=0.2, random_state=42, stratify=labels
     )
-    print("Data loading and preprocessing complete.")
     return X_train, X_test, y_train, y_test, class_names
 
-# --- 2. EMBEDDING GENERATION HELPER ---
+# Embedding
 
 def get_sentence_embeddings(texts, model_name):
     """Helper function to get embeddings from SentenceTransformer."""
@@ -49,23 +48,21 @@ def get_sentence_embeddings(texts, model_name):
     embeddings = model.encode(texts.tolist(), show_progress_bar=True, batch_size=32)
     return embeddings
 
-# --- 3. RUN EXPERIMENTS ---
+# experimenting
 
 def run_experiments(X_train, X_test, y_train, y_test, class_names):
     """
     Runs the E5 and T5 experiments and prints their reports.
     """
     
-    # --- E5 + XGBoost Experiment ---
-    print("\n==================== E5 + XGBoost ====================")
+    # E5 + XGBoost part
+    print("\n Working on E5 + XGBoost")
     X_train_e5 = get_sentence_embeddings(X_train, 'intfloat/e5-large-v2')
     X_test_e5 = get_sentence_embeddings(X_test, 'intfloat/e5-large-v2')
     
-    print("\nTraining XGBoost classifier...")
     xgb_clf = xgb.XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='mlogloss')
     xgb_clf.fit(X_train_e5, y_train)
     
-    print("Evaluating E5 + XGBoost model...")
     y_pred_e5 = xgb_clf.predict(X_test_e5)
     acc_e5 = accuracy_score(y_test, y_pred_e5)
     
@@ -73,16 +70,14 @@ def run_experiments(X_train, X_test, y_train, y_test, class_names):
     print("\nClassification Report (E5 + XGBoost):")
     print(classification_report(y_test, y_pred_e5, target_names=class_names, digits=4))
 
-    # --- T5 + Random Forest Experiment ---
-    print("\n==================== T5 + Random Forest ====================")
+    # T5 and random forest part
+    print("\n Working on T5 + Random Forest ")
     X_train_t5 = get_sentence_embeddings(X_train, 'sentence-t5-base')
     X_test_t5 = get_sentence_embeddings(X_test, 'sentence-t5-base')
 
-    print("\nTraining Random Forest classifier...")
     rf_clf_t5 = RandomForestClassifier(n_estimators=100, random_state=42)
     rf_clf_t5.fit(X_train_t5, y_train)
 
-    print("Evaluating T5 + Random Forest model...")
     y_pred_t5 = rf_clf_t5.predict(X_test_t5)
     acc_t5 = accuracy_score(y_test, y_pred_t5)
     
@@ -96,4 +91,3 @@ if __name__ == '__main__':
     
     if X_train is not None:
         run_experiments(X_train, X_test, y_train, y_test, class_names)
-        print("\nScript finished successfully.")
