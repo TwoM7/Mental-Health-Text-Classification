@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from sentence_transformers import SentenceTransformer, InputExample, models
 from torch.nn import CrossEntropyLoss
@@ -18,9 +19,9 @@ import os
 os.environ["WANDB_DISABLED"] = "true"
 warnings.filterwarnings('ignore')
 
-# --- 1. DATA LOADING AND PREPROCESSING ---
+# Data loading and preprocessing
 
-def load_and_preprocess_data(filepath="Combined Data.csv"):
+def data(filepath="Combined Data.csv"):
     print(f"1. Loading data from '{filepath}'...")
     try:
         df = pd.read_csv(filepath)
@@ -48,7 +49,7 @@ def load_and_preprocess_data(filepath="Combined Data.csv"):
     print("Data loading and preprocessing complete.")
     return X_train, X_test, y_train, y_test, class_names
 
-# --- STAGE 1: FINE-TUNE SENTENCE-BERT MODEL---
+# Finetune S BERT
 
 class FineTuningDataset(torch.utils.data.Dataset):
     def __init__(self, texts, labels, tokenizer, max_len):
@@ -89,7 +90,7 @@ def fine_tune_sbert(X_train, y_train, class_names):
     tuned_model_path = './sbert_finetuned_mental_health'
     num_classes = len(class_names)
     
-    print(f"\n--- STAGE 1: Fine-Tuning {model_name} for Classification ---")
+    print(f"\n Fine-Tuning {model_name} for Classification ---")
     
     if os.path.exists(tuned_model_path):
         print(f"Found existing fine-tuned model at '{tuned_model_path}'. Skipping fine-tuning.")
@@ -120,7 +121,7 @@ def fine_tune_sbert(X_train, y_train, class_names):
     loss_fct = CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
     
-    print("Starting fine-tuning process... (This may take some time)")
+    print("Fine tuning started this process might take time so be patient")
     model.train()
     for epoch in range(1): 
         for batch in train_dataloader:
@@ -139,11 +140,11 @@ def fine_tune_sbert(X_train, y_train, class_names):
         print(f"Epoch 1 complete. Last batch loss: {loss.item():.4f}")
 
     model.save(tuned_model_path)
-    print(f"Fine-tuning complete. Model saved to '{tuned_model_path}'.")
+    print(f"Fine-tuning Done. Model saved to '{tuned_model_path}'.")
     return tuned_model_path
 
 
-# --- STAGE 2: TRAIN LSTM WITH FINE-TUNED EMBEDDINGS ---
+# Train LSTM with fine tuned results
 
 class MentalHealthDataset(torch.utils.data.Dataset):
     def __init__(self, embeddings, labels):
@@ -170,12 +171,10 @@ class LSTMClassifier(nn.Module):
         return self.fc(hidden)
 
 def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, class_names):
-    print("\n--- STAGE 2: Training LSTM Classifier with Fine-Tuned Embeddings ---")
 
     print(f"Loading fine-tuned model from '{tuned_sbert_path}'...")
     sbert_model = SentenceTransformer(tuned_sbert_path)
     
-    print("Generating embeddings with the new fine-tuned model...")
     X_train_embeddings = sbert_model.encode(X_train.tolist(), show_progress_bar=True, batch_size=64)
     X_test_embeddings = sbert_model.encode(X_test.tolist(), show_progress_bar=True, batch_size=64)
     
@@ -201,7 +200,7 @@ def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, c
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = CrossEntropyLoss()
 
-    print("Starting final classifier training...")
+    print("classifier training on progress")
     for epoch in range(N_EPOCHS):
         model.train()
         epoch_loss = 0
@@ -215,7 +214,6 @@ def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, c
             epoch_loss += loss.item()
         print(f'Epoch: {epoch+1:02}/{N_EPOCHS} | Train Loss: {epoch_loss/len(train_loader):.4f}')
     
-    print("\nTraining finished. Evaluating final model on the test set...")
     model.eval()
     y_pred, y_true = [], []
     with torch.no_grad():
@@ -227,12 +225,11 @@ def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, c
             y_true.extend(labels.cpu().numpy())
 
     final_accuracy = accuracy_score(y_true, y_pred)
-    print(f"\nFINAL TEST ACCURACY: {final_accuracy:.4f}")
+    print(f"\nfinal test accuracy: {final_accuracy:.4f}")
     
-    print("\n--- Final Per-Class Classification Report ---")
+    print("\n Final Per-Class Classification Report ")
     print(classification_report(y_true, y_pred, target_names=class_names, digits=4))
     
-    print("Generating final confusion matrix plot...")
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(12, 10))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
@@ -242,10 +239,8 @@ def train_final_classifier(tuned_sbert_path, X_train, y_train, X_test, y_test, c
     print("Final confusion matrix saved as 'sbert_lstm_confusion_matrix_finetuned.png'")
 
 if __name__ == '__main__':
-    X_train, X_test, y_train, y_test, class_names = load_and_preprocess_data()
+    X_train, X_test, y_train, y_test, class_names = data()
     
     if X_train is not None:
         tuned_model_path = fine_tune_sbert(X_train, y_train, class_names)
         train_final_classifier(tuned_model_path, X_train, y_train, X_test, y_test, class_names)
-        
-        print("\nScript finished successfully.")
